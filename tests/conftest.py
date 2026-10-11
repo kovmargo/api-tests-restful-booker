@@ -58,3 +58,10 @@ def created_booking(base_url, headers, timeout, booking_body, token):
     delete_headers = {**headers, "Cookie": f"token={token}"}
     deleted = requests.delete(f"{base_url}/booking/{booking_id}", headers=delete_headers, timeout=timeout)
     assert deleted.status_code == 201, deleted.text
+
+
+
+
+
+
+
