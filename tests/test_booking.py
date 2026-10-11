@@ -23,19 +23,25 @@ def test_get_bookings_returns_list(base_url, headers, timeout):
     assert isinstance(response.json(), list)
 
 
-def test_auth_with_valid_credentials_returns_token(token):
-    assert isinstance(token, str)
-    assert len(token) > 0
+def test_auth_with_valid_credentials_returns_token(base_url, headers, timeout):
+    credentials = {"username": "admin", "password": "password123"}
+
+    response = requests.post(
+        f"{base_url}/auth",
+        json=credentials, headers=headers, timeout=timeout
+    )
+
+    assert response.status_code == 200, response.text
+
+    data = response.json()
+    assert "token" in data, data
+
+    assert isinstance(data["token"], str)
+    assert len(data["token"]) > 0
 
 
-def test_created_booking_can_be_read_back(base_url, headers, timeout, booking_body):
-    created = requests.post(f"{base_url}/booking", json=booking_body, headers=headers, timeout=timeout)
-
-    assert created.status_code == 200, created.text
-    created_data = created.json()
-    assert "bookingid" in created_data, created_data
-
-    booking_id = created_data["bookingid"]
+def test_create_booking_can_be_read_back(created_booking, base_url, headers, timeout, booking_body):
+    booking_id = created_booking
 
     response = requests.get(
         f"{base_url}/booking/{booking_id}",
