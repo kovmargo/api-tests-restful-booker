@@ -111,3 +111,19 @@ def test_patch_with_token_changes_only_one_field(created_booking, headers, base_
 
     expected = get_before.json() | updated_firstname
     assert get_after.json() == expected
+
+
+def test_delete_with_token_removes_booking(booking_body, base_url, headers, timeout, token):
+    new_booking = requests.post(f"{base_url}/booking", json=booking_body, headers=headers, timeout=timeout)
+    assert new_booking.status_code == 200, new_booking.text
+    booking_id=new_booking.json()["bookingid"]
+
+    delete_headers = headers | {"Cookie": f"token={token}"}
+    delete_response = requests.delete(f"{base_url}/booking/{booking_id}",headers=delete_headers,
+                              timeout=timeout)
+    assert delete_response.status_code == 201, delete_response.text
+
+    get_booking = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    assert get_booking.status_code == 404, get_booking.text
+
+
