@@ -59,7 +59,7 @@ def test_create_booking_can_be_read_back(created_booking, base_url, headers, tim
     ("admin", "password777"),
     ("min", "password123")])
 def test_auth_with_invalid_credentials_is_rejected(username, password, base_url, headers, timeout):
-    credentials =  {"username": username, "password": password}
+    credentials = {"username": username, "password": password}
     response = requests.post(
         f"{base_url}/auth",
         json=credentials, headers=headers, timeout=timeout
@@ -70,3 +70,26 @@ def test_auth_with_invalid_credentials_is_rejected(username, password, base_url,
     assert response.status_code == 200, response.text
     assert "token" not in data, data
     assert data["reason"] == "Bad credentials", data
+
+
+def test_put_with_token_updates_whole_booking(created_booking, headers, base_url, timeout, token):
+    booking_id = created_booking
+
+    put_headers = headers |  {"Cookie": f"token={token}"}
+
+    updated_body = {
+        "firstname": "Antony",
+        "lastname": "Hopkins",
+        "totalprice": 121,
+        "depositpaid": True,
+        "bookingdates": {"checkin": "2026-03-03", "checkout": "2026-03-05"},
+        "additionalneeds": "Bath",
+    }
+
+    response = requests.put(f"{base_url}/booking/{booking_id}", json=updated_body, headers=put_headers, timeout=timeout)
+
+    assert response.status_code == 200, response.text
+
+    get_response = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    assert get_response.status_code == 200, get_response.text
+    assert get_response.json() == updated_body
