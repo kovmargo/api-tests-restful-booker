@@ -87,7 +87,6 @@ def test_put_with_token_updates_whole_booking(created_booking, headers, base_url
     }
 
     response = requests.put(f"{base_url}/booking/{booking_id}", json=updated_body, headers=put_headers, timeout=timeout)
-
     assert response.status_code == 200, response.text
 
     get_response = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
@@ -126,4 +125,26 @@ def test_delete_with_token_removes_booking(booking_body, base_url, headers, time
     get_booking = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
     assert get_booking.status_code == 404, get_booking.text
 
+
+
+def test_put_without_token_is_rejected(base_url, created_booking, headers, timeout):
+    booking_id = created_booking
+    before_response= requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    assert before_response.status_code == 200, before_response.text
+
+    updated_body = {
+        "firstname": "Antony",
+        "lastname": "Hopkins",
+        "totalprice": 121,
+        "depositpaid": True,
+        "bookingdates": {"checkin": "2026-03-03", "checkout": "2026-03-05"},
+        "additionalneeds": "Bath",
+    }
+
+    response = requests.put(f"{base_url}/booking/{booking_id}", json=updated_body, headers=headers, timeout=timeout)
+    assert response.status_code == 403, response.text
+
+    after_response = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    assert after_response.status_code == 200, after_response.text
+    assert after_response.json() == before_response.json()
 
