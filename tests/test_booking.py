@@ -64,10 +64,9 @@ def test_auth_with_invalid_credentials_is_rejected(username, password, base_url,
         f"{base_url}/auth",
         json=credentials, headers=headers, timeout=timeout
     )
+    assert response.status_code == 200, response.text
 
     data = response.json()
-
-    assert response.status_code == 200, response.text
     assert "token" not in data, data
     assert data["reason"] == "Bad credentials", data
 
@@ -115,21 +114,20 @@ def test_patch_with_token_changes_only_one_field(created_booking, headers, base_
 def test_delete_with_token_removes_booking(booking_body, base_url, headers, timeout, token):
     new_booking = requests.post(f"{base_url}/booking", json=booking_body, headers=headers, timeout=timeout)
     assert new_booking.status_code == 200, new_booking.text
-    booking_id=new_booking.json()["bookingid"]
+    booking_id = new_booking.json()["bookingid"]
 
     delete_headers = headers | {"Cookie": f"token={token}"}
-    delete_response = requests.delete(f"{base_url}/booking/{booking_id}",headers=delete_headers,
-                              timeout=timeout)
+    delete_response = requests.delete(f"{base_url}/booking/{booking_id}", headers=delete_headers,
+                                      timeout=timeout)
     assert delete_response.status_code == 201, delete_response.text
 
     get_booking = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
     assert get_booking.status_code == 404, get_booking.text
 
 
-
 def test_put_without_token_is_rejected(base_url, created_booking, headers, timeout):
     booking_id = created_booking
-    before_response= requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    before_response = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
     assert before_response.status_code == 200, before_response.text
 
     updated_body = {
@@ -147,4 +145,17 @@ def test_put_without_token_is_rejected(base_url, created_booking, headers, timeo
     after_response = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
     assert after_response.status_code == 200, after_response.text
     assert after_response.json() == before_response.json()
+
+
+
+def test_get_booking_with_unknown_id_returns_404(base_url, headers, timeout):
+    booking_id = 0
+
+    response = requests.get(
+        f"{base_url}/booking/{booking_id}",
+        headers=headers,
+        timeout=timeout,
+    )
+    assert response.status_code == 404, response.text
+
 
