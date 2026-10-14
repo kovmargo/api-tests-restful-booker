@@ -24,3 +24,9 @@ Steps: DELETE /booking/{id} with a valid token
 Expected: 200 OK or 204 No Content
 Actual: 201 Created (booking is really deleted, GET returns 404)
 Test: test_delete_with_token_removes_booking
+
+## BUG-5: POST /booking with text in totalprice returns 200 and saves null
+Steps: POST /booking with a valid body, but "totalprice": "test price"
+Expected: 400 Bad Request (totalprice must be a number)
+Actual: 200 OK, booking is created with "totalprice": null (the price is silently lost)
+Test: test_post_booking_with_string_totalprice

@@ -175,4 +175,12 @@ def test_post_booking_with_missing_field(base_url, headers, timeout, booking_bod
     assert response.status_code == 400, response.text
 
 
+@pytest.mark.xfail(reason="BUG-5: accepts text in totalprice, saves null", strict=True)
+def test_post_booking_with_string_totalprice(base_url, headers, timeout, booking_body):
+    booking_body["totalprice"] = "test price"
+    response = requests.post(f"{base_url}/booking", json=booking_body, headers=headers, timeout=timeout)
+    assert response.status_code == 400, response.text
+
+
+
 
