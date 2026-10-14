@@ -159,3 +159,20 @@ def test_get_booking_with_unknown_id_returns_404(base_url, headers, timeout):
     assert response.status_code == 404, response.text
 
 
+
+@pytest.mark.parametrize("missing_field", [
+    ("firstname"),
+    ("lastname"),
+    ("totalprice"),
+    ("depositpaid"),
+     ("bookingdates")])
+@pytest.mark.xfail(reason="BUG-2: returns 500 instead of 400", strict=True)
+def test_post_booking_with_missing_field(base_url, headers, timeout, booking_body, missing_field):
+    copy_booking_body = booking_body.copy()
+    copy_booking_body.pop(missing_field)
+
+    response = requests.post(f"{base_url}/booking", json=copy_booking_body, headers=headers, timeout=timeout)
+    assert response.status_code == 400, response.text
+
+
+
