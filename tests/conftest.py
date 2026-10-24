@@ -28,9 +28,19 @@ def booking_body():
         "additionalneeds": "Breakfast",
     }
 
+@pytest.fixture(scope="function")
+def updated_body():
+    return {
+        "firstname": "Antony",
+        "lastname": "Hopkins",
+        "totalprice": 121,
+        "depositpaid": True,
+        "bookingdates": {"checkin": "2026-03-03", "checkout": "2026-03-05"},
+        "additionalneeds": "Bath",
+    }
 
 @pytest.fixture(scope="session")
-def token(base_url, headers, timeout):
+def auth_token(base_url, headers, timeout):
     credentials = {"username": "admin", "password": "password123"}
 
     response = requests.post(
@@ -38,14 +48,20 @@ def token(base_url, headers, timeout):
         json=credentials, headers=headers, timeout=timeout
     )
 
+    assert response.status_code == 200, response.text
     data = response.json()
     assert "token" in data, data
     assert isinstance(data["token"], str)
     return data["token"]
 
 
+@pytest.fixture(scope="session")
+def auth_headers(headers, auth_token):
+    return headers | {"Cookie": f"token={auth_token}"}
+
+
 @pytest.fixture()
-def created_booking(base_url, headers, timeout, booking_body, token):
+def created_booking(base_url, headers, timeout, booking_body, auth_headers):
     created = requests.post(f"{base_url}/booking", json=booking_body, headers=headers, timeout=timeout)
 
     assert created.status_code == 200, created.text
@@ -55,13 +71,5 @@ def created_booking(base_url, headers, timeout, booking_body, token):
     booking_id = created_data["bookingid"]
     yield booking_id
 
-    delete_headers = {**headers, "Cookie": f"token={token}"}
-    deleted = requests.delete(f"{base_url}/booking/{booking_id}", headers=delete_headers, timeout=timeout)
+    deleted = requests.delete(f"{base_url}/booking/{booking_id}", headers=auth_headers, timeout=timeout)
     assert deleted.status_code == 201, deleted.text
-
-
-
-
-
-
-
