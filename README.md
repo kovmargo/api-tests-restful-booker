@@ -39,6 +39,15 @@ One test by name:
 pytest -v -k test_get_bookings_returns_list
 ```
 
+Choose the environment with `--env` (default is `prod`):
+
+```bash
+pytest -v --env prod    # https://restful-booker.herokuapp.com
+pytest -v --env local   # http://localhost:3001 (Restful-Booker running in Docker)
+```
+
+pytest settings (test folder, markers, strict xfail) are in `pytest.ini`.
+
 ## Project structure
 
 ```
@@ -47,6 +56,7 @@ tests/
   test_booking.py   # the tests
 BUGS.md             # bugs found in the API
 explore.py          # small script to explore the API by hand
+pytest.ini          # pytest settings: testpaths, markers, xfail_strict
 requirements.txt    # dependencies
 ```
 

@@ -1,10 +1,18 @@
 import pytest
 import requests
 
+def pytest_addoption(parser):
+    parser.addoption("--env", default="prod", choices=["prod", "local"])
+
+URLS = {
+    "prod" : "https://restful-booker.herokuapp.com",
+    "local" : "http://localhost:3001"
+}
 
 @pytest.fixture(scope="session")
-def base_url():
-    return "https://restful-booker.herokuapp.com"
+def base_url(request):
+    env = request.config.getoption("--env")
+    return URLS[env]
 
 
 @pytest.fixture(scope="session")

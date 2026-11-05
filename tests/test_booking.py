@@ -125,8 +125,7 @@ def test_put_without_token_is_rejected(base_url, created_booking, headers, timeo
     assert after_response.status_code == 200, after_response.text
     assert after_response.json() == before_response.json()
 
-
-
+@pytest.mark.smoke
 def test_get_booking_with_unknown_id_returns_404(base_url, headers, timeout):
     booking_id = 0
 
