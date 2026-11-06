@@ -1,5 +1,7 @@
+import os
 import pytest
 import requests
+
 
 def pytest_addoption(parser):
     parser.addoption("--env", default="prod", choices=["prod", "local"])
@@ -49,9 +51,11 @@ def updated_body():
 
 @pytest.fixture(scope="session")
 def credentials():
+    password = os.getenv("API_PASSWORD")
+    assert password, "API_PASSWORD is not set"
     return {
         "username": "admin",
-        "password": "password123"
+        "password": password
     }
 
 

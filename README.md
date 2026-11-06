@@ -27,6 +27,12 @@ pip install -r requirements.txt
 
 ## Running the tests
 
+First set the API password (the default admin password from the Restful-Booker docs):
+
+```bash
+export API_PASSWORD=<password>
+```
+
 All tests:
 
 ```bash
