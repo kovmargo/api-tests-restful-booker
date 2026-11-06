@@ -12,7 +12,7 @@ def test_create_booking_returns_sent_data(base_url, headers, timeout, booking_bo
     assert data["booking"]["totalprice"] == booking_body["totalprice"]
     assert isinstance(data["bookingid"], int)
 
-
+@pytest.mark.smoke
 def test_get_bookings_returns_list(base_url, headers, timeout):
     response = requests.get(
         f"{base_url}/booking",
@@ -23,7 +23,7 @@ def test_get_bookings_returns_list(base_url, headers, timeout):
     assert response.status_code == 200, response.text
     assert isinstance(response.json(), list)
 
-
+@pytest.mark.smoke
 def test_auth_with_valid_credentials_returns_token(base_url, headers, timeout, credentials):
     response = requests.post(
         f"{base_url}/auth",
@@ -39,6 +39,7 @@ def test_auth_with_valid_credentials_returns_token(base_url, headers, timeout, c
     assert len(data["token"]) > 0
 
 
+@pytest.mark.smoke
 def test_create_booking_can_be_read_back(created_booking, base_url, headers, timeout, booking_body):
     booking_id = created_booking
 
@@ -122,7 +123,7 @@ def test_put_without_token_is_rejected(base_url, created_booking, headers, timeo
     assert after_response.status_code == 200, after_response.text
     assert after_response.json() == before_response.json()
 
-@pytest.mark.smoke
+
 def test_get_booking_with_unknown_id_returns_404(base_url, headers, timeout):
     booking_id = 0
 
