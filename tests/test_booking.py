@@ -24,9 +24,7 @@ def test_get_bookings_returns_list(base_url, headers, timeout):
     assert isinstance(response.json(), list)
 
 
-def test_auth_with_valid_credentials_returns_token(base_url, headers, timeout):
-    credentials = {"username": "admin", "password": "password123"}
-
+def test_auth_with_valid_credentials_returns_token(base_url, headers, timeout, credentials):
     response = requests.post(
         f"{base_url}/auth",
         json=credentials, headers=headers, timeout=timeout
@@ -53,23 +51,22 @@ def test_create_booking_can_be_read_back(created_booking, base_url, headers, tim
     assert response.json() == booking_body
 
 
-@pytest.mark.parametrize("username, password", [
-    ("", "password123"),
-    ("admin", ""),
-    ("admin", "password777"),
-    ("min", "password123")])
-def test_auth_with_invalid_credentials_is_rejected(username, password, base_url, headers, timeout):
-    credentials = {"username": username, "password": password}
+@pytest.mark.parametrize("field, value", [
+    ("username", ""),
+    ("password", ""),
+    ("password", "password777"),
+    ("username", "min")])
+def test_auth_with_invalid_credentials_is_rejected(field, value, credentials, base_url, headers, timeout):
+    bad_credentials = credentials | {field: value}
     response = requests.post(
         f"{base_url}/auth",
-        json=credentials, headers=headers, timeout=timeout
+        json=bad_credentials, headers=headers, timeout=timeout
     )
     assert response.status_code == 200, response.text
 
     data = response.json()
     assert "token" not in data, data
     assert data["reason"] == "Bad credentials", data
-
 
 def test_put_with_token_updates_whole_booking(auth_headers, created_booking, headers, base_url, timeout, updated_body):
     booking_id = created_booking

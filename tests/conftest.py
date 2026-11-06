@@ -48,9 +48,15 @@ def updated_body():
     }
 
 @pytest.fixture(scope="session")
-def auth_token(base_url, headers, timeout):
-    credentials = {"username": "admin", "password": "password123"}
+def credentials():
+    return {
+        "username": "admin",
+        "password": "password123"
+    }
 
+
+@pytest.fixture(scope="session")
+def auth_token(base_url, headers, timeout, credentials):
     response = requests.post(
         f"{base_url}/auth",
         json=credentials, headers=headers, timeout=timeout
