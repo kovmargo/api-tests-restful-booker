@@ -1,5 +1,8 @@
 # api-tests-restful-booker
 
+[![API tests](https://github.com/kovmargo/api-tests-restful-booker/actions/workflows/tests.yml/badge.svg)](https://github.com/kovmargo/api-tests-restful-booker/actions/workflows/tests.yml)
+
+
 API tests for [Restful-Booker](https://restful-booker.herokuapp.com), a public demo API for hotel bookings.
 Written in Python with pytest and requests.
 
