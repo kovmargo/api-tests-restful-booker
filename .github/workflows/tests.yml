@@ -32,7 +32,14 @@ jobs:
           API_PASSWORD: ${{ secrets.API_PASSWORD }}
         run: |
           if [ "${{ inputs.tests }}" = "smoke" ]; then
-            pytest -v -n 4 -m smoke
+            pytest -v -n 4 -m smoke --html=report.html --self-contained-html
           else
-            pytest -v -n 4
+            pytest -v -n 4 --html=report.html --self-contained-html
           fi
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: report.html
