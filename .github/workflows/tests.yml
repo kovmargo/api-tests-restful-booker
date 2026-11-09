@@ -7,6 +7,12 @@ on:
     branches: [main]
   schedule:
     - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      tests:
+        description: "Which tests to run"
+        type: choice
+        options: [ all, smoke ]
 
 jobs:
   test:
@@ -24,4 +30,9 @@ jobs:
       - name: Run tests
         env:
           API_PASSWORD: ${{ secrets.API_PASSWORD }}
-        run: pytest -v -n 4
+        run: |
+          if [ "${{ inputs.tests }}" = "smoke" ]; then
+            pytest -v -n 4 -m smoke
+          else
+            pytest -v -n 4
+          fi
