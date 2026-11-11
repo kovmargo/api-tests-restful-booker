@@ -14,3 +14,12 @@ class BookingClient(object):
     def get_booking(self, booking_id):
         return requests.get(f"{self.base_url}/booking/{booking_id}", headers=self.headers,
                             timeout=self.timeout)
+
+    def create_booking(self, body):
+        return requests.post(f"{self.base_url}/booking", json=body, headers=self.headers,
+                             timeout=self.timeout)
+
+    def auth(self, credentials):
+        return  requests.post(
+            f"{self.base_url}/auth", json=credentials, headers=self.headers,
+            timeout=self.timeout)
