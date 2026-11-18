@@ -1,4 +1,6 @@
 import pytest
+from api.models import CreateBookingResponse
+from api.models import Booking
 
 
 def test_create_booking_returns_sent_data(client, booking_body):
@@ -6,10 +8,8 @@ def test_create_booking_returns_sent_data(client, booking_body):
     assert response.status_code == 200, response.text
 
     data = response.json()
-    assert data["booking"]["firstname"] == booking_body["firstname"]
-    assert data["booking"]["lastname"] == booking_body["lastname"]
-    assert data["booking"]["totalprice"] == booking_body["totalprice"]
-    assert isinstance(data["bookingid"], int)
+    created = CreateBookingResponse.model_validate(data)
+    assert created.booking.model_dump() == booking_body
 
 
 @pytest.mark.smoke
@@ -37,9 +37,10 @@ def test_auth_with_valid_credentials_returns_token(credentials, client):
 def test_create_booking_can_be_read_back(created_booking, booking_body, client):
     booking_id = created_booking
     response = client.get_booking(booking_id)
-
     assert response.status_code == 200, response.text
-    assert response.json() == booking_body
+
+    read_back = Booking.model_validate(response.json())
+    assert read_back.model_dump() == booking_body
 
 
 @pytest.mark.parametrize("field, value", [
