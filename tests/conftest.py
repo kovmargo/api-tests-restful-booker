@@ -2,14 +2,18 @@ import os
 import pytest
 import requests
 
+from api.booking_client import BookingClient
+
 
 def pytest_addoption(parser):
     parser.addoption("--env", default="prod", choices=["prod", "local"])
 
+
 URLS = {
-    "prod" : "https://restful-booker.herokuapp.com",
-    "local" : "http://localhost:3001"
+    "prod": "https://restful-booker.herokuapp.com",
+    "local": "http://localhost:3001"
 }
+
 
 @pytest.fixture(scope="session")
 def base_url(request):
@@ -38,6 +42,7 @@ def booking_body():
         "additionalneeds": "Breakfast",
     }
 
+
 @pytest.fixture(scope="function")
 def updated_body():
     return {
@@ -48,6 +53,7 @@ def updated_body():
         "bookingdates": {"checkin": "2026-03-03", "checkout": "2026-03-05"},
         "additionalneeds": "Bath",
     }
+
 
 @pytest.fixture(scope="session")
 def credentials():
@@ -91,3 +97,9 @@ def created_booking(base_url, headers, timeout, booking_body, auth_headers):
 
     deleted = requests.delete(f"{base_url}/booking/{booking_id}", headers=auth_headers, timeout=timeout)
     assert deleted.status_code == 201, deleted.text
+
+
+@pytest.fixture(scope="session")
+def client(base_url, headers, timeout):
+    client = BookingClient(base_url, headers, timeout)
+    return client

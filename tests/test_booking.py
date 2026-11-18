@@ -13,12 +13,8 @@ def test_create_booking_returns_sent_data(base_url, headers, timeout, booking_bo
     assert isinstance(data["bookingid"], int)
 
 @pytest.mark.smoke
-def test_get_bookings_returns_list(base_url, headers, timeout):
-    response = requests.get(
-        f"{base_url}/booking",
-        headers=headers,
-        timeout=timeout,
-    )
+def test_get_bookings_returns_list(client):
+    response = client.get_bookings()
 
     assert response.status_code == 200, response.text
     assert isinstance(response.json(), list)
