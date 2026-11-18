@@ -5,6 +5,7 @@
 
 API tests for [Restful-Booker](https://restful-booker.herokuapp.com), a public demo API for hotel bookings.
 Written in Python with pytest and requests.
+Tests talk to the API through a small API client class, `BookingClient`, not through raw `requests` calls.
 
 ## What is tested
 
@@ -60,14 +61,27 @@ pytest settings (test folder, markers, strict xfail) are in `pytest.ini`.
 ## Project structure
 
 ```
+api/
+  booking_client.py # BookingClient: one method per endpoint (get, create, auth, put, patch, delete)
 tests/
-  conftest.py       # shared fixtures: base_url, headers, auth_token, auth_headers, booking data
-  test_booking.py   # the tests
+  conftest.py       # shared fixtures: --env option, client, credentials, auth_token, created_booking, booking data
+  test_booking.py   # the tests (use the client fixture)
 BUGS.md             # bugs found in the API
 explore.py          # small script to explore the API by hand
 pytest.ini          # pytest settings: testpaths, markers, xfail_strict
 requirements.txt    # dependencies
 ```
+
+## How the tests are organised
+
+```
+test  →  client fixture  →  BookingClient  →  Restful-Booker API
+```
+
+- `BookingClient` keeps `base_url`, headers and timeout, and has one method per endpoint.
+- Methods return the full response. All checks (`assert`) stay in the tests.
+- `put_booking`, `patch_booking` and `delete_booking` take an optional `token`. Without it, no auth cookie is sent (used by negative tests).
+- If the API changes (path, headers, how the token is sent), only `api/booking_client.py` needs to change.
 
 ## Known bugs (xfailed tests)
 
