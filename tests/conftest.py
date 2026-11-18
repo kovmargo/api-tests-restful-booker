@@ -1,6 +1,5 @@
 import os
 import pytest
-import requests
 
 from api.booking_client import BookingClient
 
@@ -66,12 +65,8 @@ def credentials():
 
 
 @pytest.fixture(scope="session")
-def auth_token(base_url, headers, timeout, credentials):
-    response = requests.post(
-        f"{base_url}/auth",
-        json=credentials, headers=headers, timeout=timeout
-    )
-
+def auth_token(client, credentials):
+    response = client.auth(credentials)
     assert response.status_code == 200, response.text
     data = response.json()
     assert "token" in data, data
@@ -85,8 +80,8 @@ def auth_headers(headers, auth_token):
 
 
 @pytest.fixture()
-def created_booking(base_url, headers, timeout, booking_body, auth_headers):
-    created = requests.post(f"{base_url}/booking", json=booking_body, headers=headers, timeout=timeout)
+def created_booking(client, booking_body, auth_token):
+    created = client.create_booking(booking_body)
 
     assert created.status_code == 200, created.text
     created_data = created.json()
@@ -95,7 +90,7 @@ def created_booking(base_url, headers, timeout, booking_body, auth_headers):
     booking_id = created_data["bookingid"]
     yield booking_id
 
-    deleted = requests.delete(f"{base_url}/booking/{booking_id}", headers=auth_headers, timeout=timeout)
+    deleted = client.delete_booking(booking_id, auth_token)
     assert deleted.status_code == 201, deleted.text
 
 
