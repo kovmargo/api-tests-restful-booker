@@ -74,11 +74,6 @@ def auth_token(client, credentials):
     return data["token"]
 
 
-@pytest.fixture(scope="session")
-def auth_headers(headers, auth_token):
-    return headers | {"Cookie": f"token={auth_token}"}
-
-
 @pytest.fixture()
 def created_booking(client, booking_body, auth_token):
     created = client.create_booking(booking_body)
