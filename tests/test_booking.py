@@ -1,5 +1,4 @@
 import pytest
-import requests
 
 
 def test_create_booking_returns_sent_data(client, booking_body):
@@ -59,57 +58,55 @@ def test_auth_with_invalid_credentials_is_rejected(field, value, credentials, cl
     assert data["reason"] == "Bad credentials", data
 
 
-def test_put_with_token_updates_whole_booking(auth_headers, created_booking, headers, base_url, timeout, updated_body):
+def test_put_with_token_updates_whole_booking(auth_token, created_booking, updated_body, client):
     booking_id = created_booking
 
-    response = requests.put(f"{base_url}/booking/{booking_id}", json=updated_body, headers=auth_headers,
-                            timeout=timeout)
+    response = client.put_booking(booking_id, updated_body, auth_token)
     assert response.status_code == 200, response.text
 
-    get_response = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    get_response = client.get_booking(booking_id)
+
     assert get_response.status_code == 200, get_response.text
     assert get_response.json() == updated_body
 
 
-def test_patch_with_token_changes_only_one_field(created_booking, headers, base_url, timeout, auth_headers):
+def test_patch_with_token_changes_only_one_field(created_booking, client, auth_token):
     booking_id = created_booking
-    get_before = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    get_before = client.get_booking(booking_id)
     assert get_before.status_code == 200, get_before.text
 
     updated_firstname = {"firstname": "Malcolm"}
-    response = requests.patch(f"{base_url}/booking/{booking_id}", json=updated_firstname, headers=auth_headers,
-                              timeout=timeout)
+    response = client.patch_booking(booking_id, updated_firstname, auth_token)
     assert response.status_code == 200, response.text
 
-    get_after = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    get_after = client.get_booking(booking_id)
     assert get_after.status_code == 200, get_after.text
 
     expected = get_before.json() | updated_firstname
     assert get_after.json() == expected
 
 
-def test_delete_with_token_removes_booking(booking_body, base_url, headers, timeout, auth_headers):
-    new_booking = requests.post(f"{base_url}/booking", json=booking_body, headers=headers, timeout=timeout)
+def test_delete_with_token_removes_booking(booking_body, client, auth_token):
+    new_booking = client.create_booking(booking_body)
     assert new_booking.status_code == 200, new_booking.text
     booking_id = new_booking.json()["bookingid"]
 
-    delete_response = requests.delete(f"{base_url}/booking/{booking_id}", headers=auth_headers,
-                                      timeout=timeout)
+    delete_response = client.delete_booking(booking_id, auth_token)
     assert delete_response.status_code == 201, delete_response.text
 
-    get_booking = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    get_booking = client.get_booking(booking_id)
     assert get_booking.status_code == 404, get_booking.text
 
 
-def test_put_without_token_is_rejected(base_url, created_booking, headers, timeout, updated_body):
+def test_put_without_token_is_rejected(created_booking, updated_body, client):
     booking_id = created_booking
-    before_response = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    before_response = client.get_booking(booking_id)
     assert before_response.status_code == 200, before_response.text
 
-    response = requests.put(f"{base_url}/booking/{booking_id}", json=updated_body, headers=headers, timeout=timeout)
+    response = client.put_booking(booking_id, updated_body)
     assert response.status_code == 403, response.text
 
-    after_response = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
+    after_response = client.get_booking(booking_id)
     assert after_response.status_code == 200, after_response.text
     assert after_response.json() == before_response.json()
 
