@@ -2,8 +2,8 @@ import pytest
 import requests
 
 
-def test_create_booking_returns_sent_data(base_url, headers, timeout, booking_body):
-    response = requests.post(f"{base_url}/booking", json=booking_body, headers=headers, timeout=timeout)
+def test_create_booking_returns_sent_data(client, booking_body):
+    response = client.create_booking(booking_body)
     assert response.status_code == 200, response.text
 
     data = response.json()
@@ -12,6 +12,7 @@ def test_create_booking_returns_sent_data(base_url, headers, timeout, booking_bo
     assert data["booking"]["totalprice"] == booking_body["totalprice"]
     assert isinstance(data["bookingid"], int)
 
+
 @pytest.mark.smoke
 def test_get_bookings_returns_list(client):
     response = client.get_bookings()
@@ -19,12 +20,10 @@ def test_get_bookings_returns_list(client):
     assert response.status_code == 200, response.text
     assert isinstance(response.json(), list)
 
+
 @pytest.mark.smoke
-def test_auth_with_valid_credentials_returns_token(base_url, headers, timeout, credentials):
-    response = requests.post(
-        f"{base_url}/auth",
-        json=credentials, headers=headers, timeout=timeout
-    )
+def test_auth_with_valid_credentials_returns_token(credentials, client):
+    response = client.auth(credentials)
 
     assert response.status_code == 200, response.text
 
@@ -36,14 +35,10 @@ def test_auth_with_valid_credentials_returns_token(base_url, headers, timeout, c
 
 
 @pytest.mark.smoke
-def test_create_booking_can_be_read_back(created_booking, base_url, headers, timeout, booking_body):
+def test_create_booking_can_be_read_back(created_booking, booking_body, client):
     booking_id = created_booking
+    response = client.get_booking(booking_id)
 
-    response = requests.get(
-        f"{base_url}/booking/{booking_id}",
-        headers=headers,
-        timeout=timeout,
-    )
     assert response.status_code == 200, response.text
     assert response.json() == booking_body
 
@@ -53,22 +48,22 @@ def test_create_booking_can_be_read_back(created_booking, base_url, headers, tim
     ("password", ""),
     ("password", "password777"),
     ("username", "min")])
-def test_auth_with_invalid_credentials_is_rejected(field, value, credentials, base_url, headers, timeout):
+def test_auth_with_invalid_credentials_is_rejected(field, value, credentials, client):
     bad_credentials = credentials | {field: value}
-    response = requests.post(
-        f"{base_url}/auth",
-        json=bad_credentials, headers=headers, timeout=timeout
-    )
+    response = client.auth(bad_credentials)
+
     assert response.status_code == 200, response.text
 
     data = response.json()
     assert "token" not in data, data
     assert data["reason"] == "Bad credentials", data
 
+
 def test_put_with_token_updates_whole_booking(auth_headers, created_booking, headers, base_url, timeout, updated_body):
     booking_id = created_booking
 
-    response = requests.put(f"{base_url}/booking/{booking_id}", json=updated_body, headers=auth_headers, timeout=timeout)
+    response = requests.put(f"{base_url}/booking/{booking_id}", json=updated_body, headers=auth_headers,
+                            timeout=timeout)
     assert response.status_code == 200, response.text
 
     get_response = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
@@ -80,7 +75,6 @@ def test_patch_with_token_changes_only_one_field(created_booking, headers, base_
     booking_id = created_booking
     get_before = requests.get(f"{base_url}/booking/{booking_id}", headers=headers, timeout=timeout)
     assert get_before.status_code == 200, get_before.text
-
 
     updated_firstname = {"firstname": "Malcolm"}
     response = requests.patch(f"{base_url}/booking/{booking_id}", json=updated_firstname, headers=auth_headers,
@@ -120,16 +114,11 @@ def test_put_without_token_is_rejected(base_url, created_booking, headers, timeo
     assert after_response.json() == before_response.json()
 
 
-def test_get_booking_with_unknown_id_returns_404(base_url, headers, timeout):
+def test_get_booking_with_unknown_id_returns_404(client):
     booking_id = 0
+    response = client.get_booking(booking_id)
 
-    response = requests.get(
-        f"{base_url}/booking/{booking_id}",
-        headers=headers,
-        timeout=timeout,
-    )
     assert response.status_code == 404, response.text
-
 
 
 @pytest.mark.parametrize("missing_field", [
@@ -137,22 +126,21 @@ def test_get_booking_with_unknown_id_returns_404(base_url, headers, timeout):
     ("lastname"),
     ("totalprice"),
     ("depositpaid"),
-     ("bookingdates")])
+    ("bookingdates")])
 @pytest.mark.xfail(reason="BUG-2: returns 500 instead of 400", strict=True)
-def test_post_booking_with_missing_field(base_url, headers, timeout, booking_body, missing_field):
+def test_post_booking_with_missing_field(booking_body, missing_field, client):
     copy_booking_body = booking_body.copy()
     copy_booking_body.pop(missing_field)
 
-    response = requests.post(f"{base_url}/booking", json=copy_booking_body, headers=headers, timeout=timeout)
+    response = client.create_booking(copy_booking_body)
+
     assert response.status_code == 400, response.text
 
 
 @pytest.mark.xfail(reason="BUG-5: accepts text in totalprice, saves null", strict=True)
-def test_post_booking_with_string_totalprice(base_url, headers, timeout, booking_body):
+def test_post_booking_with_string_totalprice(booking_body, client):
     booking_body["totalprice"] = "test price"
-    response = requests.post(f"{base_url}/booking", json=booking_body, headers=headers, timeout=timeout)
+
+    response = client.create_booking(booking_body)
+
     assert response.status_code == 400, response.text
-
-
-
-
