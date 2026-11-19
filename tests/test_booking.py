@@ -2,7 +2,6 @@ import pytest
 from api.models import Booking, CreateBookingResponse
 
 
-
 def test_create_booking_returns_sent_data(client, booking_body, auth_token):
     response = client.create_booking(booking_body)
     assert response.status_code == 200, response.text
@@ -152,6 +151,12 @@ def test_get_booking_with_unknown_id_returns_404(client):
     response = client.get_booking(booking_id)
 
     assert response.status_code == 404, response.text
+
+@pytest.mark.xfail(reason="BUG-6: returns 405 instead of 404", strict=True)
+def test_put_with_unknown_id_returns_404(client, auth_token, updated_body):
+    booking_id = 0
+    put_response = client.put_booking(booking_id, updated_body, token=auth_token)
+    assert put_response.status_code == 404, put_response.text
 
 
 @pytest.mark.parametrize("missing_field", [
