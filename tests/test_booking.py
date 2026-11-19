@@ -1,6 +1,6 @@
 import pytest
-from api.models import CreateBookingResponse
-from api.models import Booking
+from api.models import Booking, CreateBookingResponse
+
 
 
 def test_create_booking_returns_sent_data(client, booking_body, auth_token):
@@ -64,7 +64,7 @@ def test_auth_with_invalid_credentials_is_rejected(field, value, credentials, cl
 def test_put_with_token_updates_whole_booking(auth_token, created_booking, updated_body, client):
     booking_id = created_booking
 
-    response = client.put_booking(booking_id, updated_body, auth_token)
+    response = client.put_booking(booking_id, updated_body, token=auth_token)
     assert response.status_code == 200, response.text
 
     get_response = client.get_booking(booking_id)
@@ -79,7 +79,7 @@ def test_patch_with_token_changes_only_one_field(created_booking, client, auth_t
     assert get_before.status_code == 200, get_before.text
 
     updated_firstname = {"firstname": "Malcolm"}
-    response = client.patch_booking(booking_id, updated_firstname, auth_token)
+    response = client.patch_booking(booking_id, updated_firstname, token=auth_token)
     assert response.status_code == 200, response.text
 
     get_after = client.get_booking(booking_id)
@@ -110,11 +110,11 @@ def test_delete_with_token_removes_booking(booking_body, client, auth_token):
     assert new_booking.status_code == 200, new_booking.text
     booking_id = new_booking.json()["bookingid"]
 
-    delete_response = client.delete_booking(booking_id, auth_token)
+    delete_response = client.delete_booking(booking_id, token=auth_token)
     assert delete_response.status_code == 201, delete_response.text
 
-    get_booking = client.get_booking(booking_id)
-    assert get_booking.status_code == 404, get_booking.text
+    get_response = client.get_booking(booking_id)
+    assert get_response.status_code == 404, get_response.text
 
 
 @pytest.mark.parametrize("bad_token", ["werewr342gfd", None, "", "null"],
@@ -155,11 +155,11 @@ def test_get_booking_with_unknown_id_returns_404(client):
 
 
 @pytest.mark.parametrize("missing_field", [
-    ("firstname"),
-    ("lastname"),
-    ("totalprice"),
-    ("depositpaid"),
-    ("bookingdates")])
+    "firstname",
+    "lastname",
+    "totalprice",
+    "depositpaid",
+    "bookingdates"])
 @pytest.mark.xfail(reason="BUG-2: returns 500 instead of 400", strict=True)
 def test_post_booking_with_missing_field(booking_body, missing_field, client):
     copy_booking_body = booking_body.copy()
