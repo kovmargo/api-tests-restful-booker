@@ -112,6 +112,20 @@ def test_put_without_token_is_rejected(created_booking, updated_body, client):
     assert after_response.json() == before_response.json()
 
 
+def test_put_with_wrong_token_is_forbidden(created_booking, updated_body, client, booking_body):
+    booking_id = created_booking
+    wrong_token = "sdfdfsdf123578sdffsd"
+
+    put_response = client.put_booking(booking_id, updated_body, token=wrong_token)
+    assert put_response.status_code == 403, put_response.text
+
+    get_response = client.get_booking(booking_id)
+    assert get_response.status_code == 200, get_response.text
+
+    read_back = Booking.model_validate(get_response.json())
+    assert read_back.model_dump() == booking_body
+
+
 def test_get_booking_with_unknown_id_returns_404(client):
     booking_id = 0
     response = client.get_booking(booking_id)
