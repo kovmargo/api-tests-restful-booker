@@ -111,10 +111,10 @@ def test_put_without_token_is_rejected(created_booking, updated_body, client):
     assert after_response.status_code == 200, after_response.text
     assert after_response.json() == before_response.json()
 
-
-def test_put_with_wrong_token_is_forbidden(created_booking, updated_body, client, booking_body):
+@pytest.mark.parametrize("wrong_token", ["sdfdfsdf123578sdffsd", "", "null"],
+                         ids=["random", "empty", "null"])
+def test_put_with_wrong_token_is_forbidden(created_booking, updated_body, client, booking_body, wrong_token):
     booking_id = created_booking
-    wrong_token = "sdfdfsdf123578sdffsd"
 
     put_response = client.put_booking(booking_id, updated_body, token=wrong_token)
     assert put_response.status_code == 403, put_response.text
