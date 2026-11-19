@@ -115,6 +115,21 @@ def test_delete_with_token_removes_booking(booking_body, client, auth_token):
     assert get_booking.status_code == 404, get_booking.text
 
 
+@pytest.mark.parametrize("bad_token", ["werewr342gfd", None, "", "null"],
+                         ids=["random", "none", "empty", "null"])
+def test_delete_with_bad_token_is_forbidden(created_booking, client, bad_token, booking_body):
+    booking_id = created_booking
+
+    delete_response = client.delete_booking(booking_id, token=bad_token)
+    assert delete_response.status_code == 403, delete_response.text
+
+    get_response = client.get_booking(booking_id)
+    assert get_response.status_code == 200, get_response.text
+
+    read_back = Booking.model_validate(get_response.json())
+    assert read_back.model_dump() == booking_body
+
+
 def test_put_without_token_is_rejected(created_booking, updated_body, client):
     booking_id = created_booking
     before_response = client.get_booking(booking_id)
