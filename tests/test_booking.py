@@ -3,12 +3,14 @@ from api.models import CreateBookingResponse
 from api.models import Booking
 
 
-def test_create_booking_returns_sent_data(client, booking_body):
+def test_create_booking_returns_sent_data(client, booking_body, auth_token):
     response = client.create_booking(booking_body)
     assert response.status_code == 200, response.text
 
     data = response.json()
     created = CreateBookingResponse.model_validate(data)
+    client.delete_booking(created.bookingid, token=auth_token)
+
     assert created.booking.model_dump() == booking_body
 
 
@@ -89,7 +91,7 @@ def test_patch_with_token_changes_only_one_field(created_booking, client, auth_t
 
 @pytest.mark.parametrize("bad_token", ["werewr342gfd", None, "", "null"],
                          ids=["random", "none", "empty", "null"])
-def test_patch_with_invalid_token_is_forbidden(created_booking, client, booking_body, bad_token):
+def test_patch_with_bad_token_is_forbidden(created_booking, client, booking_body, bad_token):
     booking_id = created_booking
 
     updated_firstname = {"firstname": "Jhonatan"}
@@ -130,25 +132,12 @@ def test_delete_with_bad_token_is_forbidden(created_booking, client, bad_token, 
     assert read_back.model_dump() == booking_body
 
 
-def test_put_without_token_is_rejected(created_booking, updated_body, client):
-    booking_id = created_booking
-    before_response = client.get_booking(booking_id)
-    assert before_response.status_code == 200, before_response.text
-
-    response = client.put_booking(booking_id, updated_body)
-    assert response.status_code == 403, response.text
-
-    after_response = client.get_booking(booking_id)
-    assert after_response.status_code == 200, after_response.text
-    assert after_response.json() == before_response.json()
-
-
-@pytest.mark.parametrize("wrong_token", ["sdfdfsdf123578sdffsd", "", "null"],
-                         ids=["random", "empty", "null"])
-def test_put_with_wrong_token_is_forbidden(created_booking, updated_body, client, booking_body, wrong_token):
+@pytest.mark.parametrize("bad_token", ["sdfdfsdf123578sdffsd", None, "", "null"],
+                         ids=["random", "none", "empty", "null"])
+def test_put_with_bad_token_is_forbidden(created_booking, updated_body, client, booking_body, bad_token):
     booking_id = created_booking
 
-    put_response = client.put_booking(booking_id, updated_body, token=wrong_token)
+    put_response = client.put_booking(booking_id, updated_body, token=bad_token)
     assert put_response.status_code == 403, put_response.text
 
     get_response = client.get_booking(booking_id)
