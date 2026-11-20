@@ -152,11 +152,27 @@ def test_get_booking_with_unknown_id_returns_404(client):
 
     assert response.status_code == 404, response.text
 
+
 @pytest.mark.xfail(reason="BUG-6: returns 405 instead of 404", strict=True)
 def test_put_with_unknown_id_returns_404(client, auth_token, updated_body):
     booking_id = 0
     put_response = client.put_booking(booking_id, updated_body, token=auth_token)
     assert put_response.status_code == 404, put_response.text
+
+
+@pytest.mark.xfail(reason="BUG-6: returns 405 instead of 404", strict=True)
+def test_patch_with_unknown_id_returns_404(client, auth_token):
+    booking_id = 0
+    updated_firstname = {"firstname": "Ghost"}
+    patch_response = client.patch_booking(booking_id, updated_firstname, token=auth_token)
+    assert patch_response.status_code == 404, patch_response.text
+
+
+@pytest.mark.xfail(reason="BUG-6: returns 405 instead of 404", strict=True)
+def test_delete_with_unknown_id_returns_404(client, auth_token):
+    booking_id = 0
+    delete_response = client.delete_booking(booking_id, token=auth_token)
+    assert delete_response.status_code == 404, delete_response.text
 
 
 @pytest.mark.parametrize("missing_field", [
