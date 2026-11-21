@@ -29,6 +29,7 @@ Expected: 200 OK or 204 No Content
 Actual: 201 Created (booking is really deleted, GET returns 404)
 Test: test_delete_with_token_removes_booking
 
+
 ## BUG-5: POST /booking with text in totalprice returns 200 and saves null
 
 Steps: POST /booking with a valid body, but "totalprice": "test price"
@@ -36,9 +37,10 @@ Expected: 400 Bad Request (totalprice must be a number)
 Actual: 200 OK, booking is created with "totalprice": null (the price is silently lost)
 Test: test_post_booking_with_string_totalprice
 
-## BUG-6: PUT/PATCH/DELETE /booking/{id} with unknown id returns 405
 
-Steps: PUT/PATCH/DELETE /booking/0 with a valid token (and a valid body for  PUT/PATCH)
-Expected: 404 Not Found (booking does not exist)
-Actual: 405 Method Not Allowed (but PUT/PATCH/DELETE work for existing ids, so the method IS allowed)
-Test: test_put_with_unknown_id_returns_404, test_patch_with_unknown_id_returns_404, test_delete_with_unknown_id_returns_404
+## BUG-7: POST /booking with checkout before checkin returns 200 and saves the booking
+
+Steps: POST /booking with a valid body, but "checkin": "2026-03-05" and "checkout": "2026-01-05"
+Expected: 400 Bad Request (checkout must be after checkin)
+Actual: 200 OK, booking is created with the impossible dates (negative length of stay)
+Test: test_post_booking_with_checkout_before_checkin_is_rejected

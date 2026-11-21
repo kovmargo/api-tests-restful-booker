@@ -196,5 +196,16 @@ def test_post_booking_with_string_totalprice(booking_body, client):
     booking_body["totalprice"] = "test price"
 
     response = client.create_booking(booking_body)
+    assert response.status_code == 400, response.text
+
+
+@pytest.mark.xfail(reason="BUG-7: accepts checkout before checkin, saves booking", strict=True)
+def test_post_booking_with_checkout_before_checkin_is_rejected(booking_body, client, auth_token):
+    booking_body["bookingdates"]["checkin"] = "2026-03-05"
+    booking_body["bookingdates"]["checkout"] = "2026-01-05"
+
+    response = client.create_booking(booking_body)
+    if response.status_code == 200:
+        client.delete_booking(response.json()["bookingid"], token=auth_token)
 
     assert response.status_code == 400, response.text
