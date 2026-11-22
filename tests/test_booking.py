@@ -1,4 +1,5 @@
 import pytest
+from requests import Response
 from api.models import Booking, CreateBookingResponse
 
 
