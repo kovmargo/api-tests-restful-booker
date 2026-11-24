@@ -1,6 +1,9 @@
 import pytest
-from requests import Response
+from faker import Faker
+
 from api.models import Booking, CreateBookingResponse
+
+fake = Faker()
 
 
 def test_create_booking_returns_sent_data(client, booking_body, auth_token):
@@ -78,7 +81,7 @@ def test_patch_with_token_changes_only_one_field(created_booking, client, auth_t
     get_before = client.get_booking(booking_id)
     assert get_before.status_code == 200, get_before.text
 
-    updated_firstname = {"firstname": "Malcolm"}
+    updated_firstname = {"firstname": fake.first_name()}
     response = client.patch_booking(booking_id, updated_firstname, token=auth_token)
     assert response.status_code == 200, response.text
 
@@ -94,7 +97,7 @@ def test_patch_with_token_changes_only_one_field(created_booking, client, auth_t
 def test_patch_with_bad_token_is_forbidden(created_booking, client, booking_body, bad_token):
     booking_id = created_booking
 
-    updated_firstname = {"firstname": "Jhonatan"}
+    updated_firstname = {"firstname": fake.first_name()}
     patch_response = client.patch_booking(booking_id, updated_firstname, token=bad_token)
     assert patch_response.status_code == 403, patch_response.text
 

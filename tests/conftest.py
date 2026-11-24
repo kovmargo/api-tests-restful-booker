@@ -1,7 +1,12 @@
 import os
+from datetime import timedelta
+
 import pytest
+from faker import Faker
 
 from api.booking_client import BookingClient
+
+fake = Faker()
 
 
 def pytest_addoption(parser):
@@ -30,27 +35,33 @@ def timeout():
     return 10
 
 
+def random_booking_dates():
+    checkin = fake.date_between(start_date="+1d", end_date="+30d")
+    checkout = checkin + timedelta(days=fake.random_int(min=1, max=7))
+    return {"checkin": checkin.isoformat(), "checkout": checkout.isoformat()}
+
+
 @pytest.fixture
 def booking_body():
     return {
-        "firstname": "Jim",
-        "lastname": "Brown",
-        "totalprice": 111,
-        "depositpaid": True,
-        "bookingdates": {"checkin": "2026-01-01", "checkout": "2026-01-05"},
-        "additionalneeds": "Breakfast",
+        "firstname": fake.first_name(),
+        "lastname": fake.last_name(),
+        "totalprice": fake.random_int(min=50, max=500),
+        "depositpaid": fake.boolean(),
+        "bookingdates": random_booking_dates(),
+        "additionalneeds": fake.random_element(["Breakfast", "Lunch", "Dinner"]),
     }
 
 
 @pytest.fixture(scope="function")
 def updated_body():
     return {
-        "firstname": "Antony",
-        "lastname": "Hopkins",
-        "totalprice": 121,
-        "depositpaid": True,
-        "bookingdates": {"checkin": "2026-03-03", "checkout": "2026-03-05"},
-        "additionalneeds": "Bath",
+        "firstname": fake.first_name(),
+        "lastname": fake.last_name(),
+        "totalprice": fake.random_int(min=50, max=500),
+        "depositpaid": fake.boolean(),
+        "bookingdates": random_booking_dates(),
+        "additionalneeds": fake.random_element(["Bath", "Late checkout", "Parking"]),
     }
 
 
